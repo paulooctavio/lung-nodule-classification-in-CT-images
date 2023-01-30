@@ -29,6 +29,3 @@ Adenocarcinoma and Squamous cell carcinoma nodules (left to right) generate by t
 
 # Content
 This repository contains the code for training and evaluating both the classifier and the PGGAN. The code is implemented in Python the popular deep learning library [PyTorch](https://pytorch.org/).
-
-# Note
-This repository is only for academic purposes and should not be used for any medical decision-making.
