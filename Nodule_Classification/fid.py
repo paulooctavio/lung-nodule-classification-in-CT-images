@@ -24,7 +24,6 @@ def to_cuda(elements):
 
 
 class PartialInceptionNetwork(nn.Module):
-
     def __init__(self, transform_input=True):
         super().__init__()
         self.inception_network = inception_v3(pretrained=True)
@@ -42,16 +41,19 @@ class PartialInceptionNetwork(nn.Module):
         Returns:
             inception activations: torch.tensor, shape: (N, 2048), dtype: torch.float32
         """
-        assert x.shape[1:] == (3, 299, 299), "Expected input shape to be: (N,3,299,299)" +\
-                                             ", but got {}".format(x.shape)
-        x = x * 2 -1 # Normalize to [-1, 1]
+        assert x.shape[1:] == (
+            3,
+            299,
+            299,
+        ), "Expected input shape to be: (N,3,299,299)" + ", but got {}".format(x.shape)
+        x = x * 2 - 1  # Normalize to [-1, 1]
 
         # Trigger output hook
         self.inception_network(x)
 
-        # Output: N x 2048 x 1 x 1 
+        # Output: N x 2048 x 1 x 1
         activations = self.mixed_7c_output
-        activations = torch.nn.functional.adaptive_avg_pool2d(activations, (1,1))
+        activations = torch.nn.functional.adaptive_avg_pool2d(activations, (1, 1))
         activations = activations.view(x.shape[0], 2048)
         return activations
 
@@ -65,14 +67,17 @@ def get_activations(images, batch_size):
     --
     Returns: np array shape: (N, 2048), dtype: np.float32
     """
-    assert images.shape[1:] == (3, 299, 299), "Expected input shape to be: (N,3,299,299)" +\
-                                              ", but got {}".format(images.shape)
+    assert images.shape[1:] == (
+        3,
+        299,
+        299,
+    ), "Expected input shape to be: (N,3,299,299)" + ", but got {}".format(images.shape)
 
     num_images = images.shape[0]
     inception_network = PartialInceptionNetwork()
     inception_network = to_cuda(inception_network)
     inception_network.eval()
-    n_batches = int(np.ceil(num_images  / batch_size))
+    n_batches = int(np.ceil(num_images / batch_size))
     inception_activations = np.zeros((num_images, 2048), dtype=np.float32)
     for batch_idx in range(n_batches):
         start_idx = batch_size * batch_idx
@@ -82,10 +87,14 @@ def get_activations(images, batch_size):
         ims = to_cuda(ims)
         activations = inception_network(ims)
         activations = activations.detach().cpu().numpy()
-        assert activations.shape == (ims.shape[0], 2048), "Expexted output shape to be: {}, but was: {}".format((ims.shape[0], 2048), activations.shape)
+        assert activations.shape == (
+            ims.shape[0],
+            2048,
+        ), "Expexted output shape to be: {}, but was: {}".format(
+            (ims.shape[0], 2048), activations.shape
+        )
         inception_activations[start_idx:end_idx, :] = activations
     return inception_activations
-
 
 
 def calculate_activation_statistics(images, batch_size):
@@ -95,7 +104,7 @@ def calculate_activation_statistics(images, batch_size):
         batch_size: batch size to use to calculate inception scores
     Returns:
         mu:     mean over all activations from the last pool layer of the inception model
-        sigma:  covariance matrix over all activations from the last pool layer 
+        sigma:  covariance matrix over all activations from the last pool layer
                 of the inception model.
 
     """
@@ -111,7 +120,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     The Frechet distance between two multivariate Gaussians X_1 ~ N(mu_1, C_1)
     and X_2 ~ N(mu_2, C_2) is
             d^2 = ||mu_1 - mu_2||^2 + Tr(C_1 + C_2 - 2*sqrt(C_1*C_2)).
-            
+
     Stable version by Dougal J. Sutherland.
 
     Params:
@@ -135,14 +144,21 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     sigma1 = np.atleast_2d(sigma1)
     sigma2 = np.atleast_2d(sigma2)
 
-    assert mu1.shape == mu2.shape, "Training and test mean vectors have different lengths"
-    assert sigma1.shape == sigma2.shape, "Training and test covariances have different dimensions"
+    assert (
+        mu1.shape == mu2.shape
+    ), "Training and test mean vectors have different lengths"
+    assert (
+        sigma1.shape == sigma2.shape
+    ), "Training and test covariances have different dimensions"
 
     diff = mu1 - mu2
     # product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
-        msg = "fid calculation produces singular product; adding %s to diagonal of cov estimates" % eps
+        msg = (
+            "fid calculation produces singular product; adding %s to diagonal of cov estimates"
+            % eps
+        )
         warnings.warn(msg)
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
@@ -198,7 +214,7 @@ def preprocess_images(images, use_multiprocessing):
             final_images = torch.zeros(images.shape[0], 3, 299, 299)
             for idx, job in enumerate(jobs):
                 im = job.get()
-                final_images[idx] = im#job.get()
+                final_images[idx] = im  # job.get()
     else:
         final_images = torch.stack([preprocess_image(im) for im in images], dim=0)
     assert final_images.shape == (images.shape[0], 3, 299, 299)
@@ -209,7 +225,7 @@ def preprocess_images(images, use_multiprocessing):
 
 
 def calculate_fid(images1, images2, use_multiprocessing, batch_size):
-    """ Calculate FID between images1 and images2
+    """Calculate FID between images1 and images2
     Args:
         images1: np.array, shape: (N, H, W, 3), dtype: np.float32 between 0-1 or np.uint8
         images2: np.array, shape: (N, H, W, 3), dtype: np.float32 between 0-1 or np.uint8
@@ -227,7 +243,7 @@ def calculate_fid(images1, images2, use_multiprocessing, batch_size):
 
 
 def load_images(path):
-    """ Loads all .png or .jpg images from a given path
+    """Loads all .png or .jpg images from a given path
     Warnings: Expects all images to be of same dtype and shape.
     Args:
         path: relative path to directory
@@ -237,7 +253,7 @@ def load_images(path):
     image_paths = []
     image_extensions = ["png", "jpg"]
     for ext in image_extensions:
-#         print("Looking for images in", os.path.join(path, "*.{}".format(ext)))
+        #         print("Looking for images in", os.path.join(path, "*.{}".format(ext)))
         for impath in glob.glob(os.path.join(path, "*.{}".format(ext))):
             image_paths.append(impath)
     first_image = cv2.imread(image_paths[0])
@@ -247,7 +263,7 @@ def load_images(path):
     final_images = np.zeros((len(image_paths), H, W, 3), dtype=first_image.dtype)
     for idx, impath in enumerate(image_paths):
         im = cv2.imread(impath)
-        im = im[:, :, ::-1] # Convert from BGR to RGB
+        im = im[:, :, ::-1]  # Convert from BGR to RGB
         assert im.dtype == final_images.dtype
         final_images[idx] = im
     return final_images
@@ -255,19 +271,35 @@ def load_images(path):
 
 if __name__ == "__main__":
     from optparse import OptionParser
+
     parser = OptionParser()
-    parser.add_option("--p1", "--path1", dest="path1", 
-                      help="Path to directory containing the real images")
-    parser.add_option("--p2", "--path2", dest="path2", 
-                      help="Path to directory containing the generated images")
-    parser.add_option("--multiprocessing", dest="use_multiprocessing",
-                      help="Toggle use of multiprocessing for image pre-processing. Defaults to use all cores",
-                      default=False,
-                      action="store_true")
-    parser.add_option("-b", "--batch-size", dest="batch_size",
-                      help="Set batch size to use for InceptionV3 network",
-                      type=int)
-    
+    parser.add_option(
+        "--p1",
+        "--path1",
+        dest="path1",
+        help="Path to directory containing the real images",
+    )
+    parser.add_option(
+        "--p2",
+        "--path2",
+        dest="path2",
+        help="Path to directory containing the generated images",
+    )
+    parser.add_option(
+        "--multiprocessing",
+        dest="use_multiprocessing",
+        help="Toggle use of multiprocessing for image pre-processing. Defaults to use all cores",
+        default=False,
+        action="store_true",
+    )
+    parser.add_option(
+        "-b",
+        "--batch-size",
+        dest="batch_size",
+        help="Set batch size to use for InceptionV3 network",
+        type=int,
+    )
+
     options, _ = parser.parse_args()
     assert options.path1 is not None, "--path1 is an required option"
     assert options.path2 is not None, "--path2 is an required option"
@@ -275,5 +307,7 @@ if __name__ == "__main__":
     images1 = load_images(options.path1)
     images2 = load_images(options.path2)
     print("Started calculating FID value...")
-    fid_value = calculate_fid(images1, images2, options.use_multiprocessing, options.batch_size)
+    fid_value = calculate_fid(
+        images1, images2, options.use_multiprocessing, options.batch_size
+    )
     print(fid_value)
