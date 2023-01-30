@@ -20,6 +20,7 @@ slices_data/
 U-Net/
 sampled_splitted_data/
 data/
+Nodule_Segmentation/
 *.tar
 *.dcm
 *.png
