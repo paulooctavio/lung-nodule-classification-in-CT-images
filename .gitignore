@@ -20,7 +20,10 @@ slices_data/
 U-Net/
 sampled_splitted_data/
 data/
-Nodule_Segmentation/
+**/Nodule_Segmentation/
+**/models/
+**/dataset/
+.pylidcrc
 *.tar
 *.dcm
 *.png
