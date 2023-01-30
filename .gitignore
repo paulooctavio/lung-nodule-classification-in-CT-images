@@ -4,12 +4,14 @@ teste/
 runs/
 data/
 **/Nodule_Segmentation/
+plots/
+gan_fakes/
 **/models/
 **/dataset/
 .pylidcrc
 *.tar
 *.dcm
-*.png
+*Nodule_Classification/*.png
 *.pkl
 *.pth
 *.csv
