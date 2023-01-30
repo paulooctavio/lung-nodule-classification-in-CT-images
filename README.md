@@ -17,8 +17,18 @@ Three different datasets were used in this study: [HCFMRP](https://site.hcrp.usp
 
 The results show that the use of PGGAN-generated images improves the performance of the classifier, reaching an accuracy of 0.940 compared to 0.906 for the model trained only with real images, representing a 3.8% improvement.
 
+
+<p align = "center">
+<img src="https://github.com/paulooctavio/lung-nodule-classification-in-CT-images/blob/main/images/grid_adeno.png?raw=true" alt="drawing" width="250"/>
+<img src="https://github.com/paulooctavio/lung-nodule-classification-in-CT-images/blob/main/images/grid_squamous.png?raw=true" alt="drawing" width="250"/>
+</p>
+<p align = "center">
+Adenocarcinoma and Squamous cell carcinoma nodules (left to right) generate by the PGGAN.
+</p>
+
+
 # Content
-This repository contains the code for training and evaluating both the classifier and the PGGAN. The code is implemented in Python the popular deep learning library TensorFlow.
+This repository contains the code for training and evaluating both the classifier and the PGGAN. The code is implemented in Python the popular deep learning library [PyTorch](https://pytorch.org/).
 
 # Note
 This repository is only for academic purposes and should not be used for any medical decision-making.
