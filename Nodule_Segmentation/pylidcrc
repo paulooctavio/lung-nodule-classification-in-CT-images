@@ -1,4 +1,0 @@
-[dicom]
-path = /home/mainlab1/TCCPauloLucas/LIDC-IDRI
-warn = True
-
